@@ -1,0 +1,49 @@
+.boardCell{
+  height: 50px;
+  width: 50px;
+  background-color: #2B3E42;
+  border-color: darkgreen;
+  border-width: 2px;
+  border-style: solid;
+}
+
+.boardCell:hover{
+  background-color: #747E80;
+}
+
+.hitByTorpedo{
+  background-color: #747E80;
+}
+
+.hitByTorpedo:hover{
+  background-color: #747E80;
+}
+
+.showShip{
+  background-color: #D5E1DD;
+}
+
+.showShip:hover{
+  background-color: #D5E1DD;
+}
+
+.showShip.hitByTorpedo{
+  background-color: #77BED2;
+}
+
+.sunkShip.showShip.hitByTorpedo{
+  background-color: #F2583E;
+}
+
+.torpedoCell{
+  height: 17px;
+  width: 20px;
+  background-color: #F2583E;
+  border-color: black;
+  border-width: 2px;
+  border-style: solid;
+}
+
+.spentTorpedo{
+  background-color: #747E80
+}
