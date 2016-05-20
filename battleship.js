@@ -1,32 +1,31 @@
-// initialize ship present variable
+//set constants for conditions to fill board spaces with
 var SHIP = 0;
-// initialize hit ship variable
 var HITSHIP = 1;
-// initialize hit nothing variable
 var HITNOTHING = -1;
-// set number of hits to win
-var HITSTOWIN = 24;
-// set number of ships to sink to win
+// set win conditions
+var HITSTOWIN = 24; //currently unused
 var SINKSTOWIN = 5;
 // messages for hitting/missing ship
 var HITMESSAGE = "You Hit a Ship!";
 var MISSMESSAGE = "You Missed!";
-// messages for game ending
-var WINMESSAGE = ": You Crippled their Fleet!";
+// messages for game starting/ending
+var STARTMESSAGE = ": Sink " + SINKSTOWIN + " Ships to Win!"
+var WINMESSAGE = ": Fleet Crippled!";
 var LOSEMESSAGE = ": Out of Torpedoes!";
 //sink ships messages
 var SUNKSHIPMESSAGE = "You Sunk a Ship!"
 // initialize board as empty array
 var board;
-// initialize torpedo counter
+// initialize counters for various in game items
 var torpedoUse;
-// initialize hit counter
 var hitCounter;
-// initialize ships sunk counter
-var sinkCounter;
+var sinkCounter = 0;
+var shipCounter = 0;
 // check to see if the game is ended
 var gameIsNotOver;
-var torpedoLimit = 40; //must be divisible by 2
+
+var TORPEDOLIMIT = 40;
+//game objective
 
 
 function resetBoard(){
@@ -34,7 +33,7 @@ function resetBoard(){
   // get rid of cheat message
   $("#cheatSpan").text("Battleship");
   // get rid of win/loss message
-  $("#gameOver").empty();
+  $("#gameOver").text(STARTMESSAGE);
 
   // remove classes from html board
   for(var i = 0; i <10; i++){//remove from single digit IDs
@@ -50,8 +49,8 @@ function resetBoard(){
   board = [];
   // initialize torpedo counter
   torpedoUse = 0;
-  $("#torpedoUse").text(torpedoLimit);
-  for(var i=0; i<torpedoLimit; i++){//reset torpedo gauge
+  $("#torpedoUse").text(TORPEDOLIMIT);
+  for(var i=0; i<TORPEDOLIMIT; i++){//reset torpedo gauge
     $("#t"+i).removeClass();
     $("#t"+i).addClass("torpedoCell");
   }
@@ -63,7 +62,7 @@ function resetBoard(){
   $("#sinkCounter").text(sinkCounter);
   // check to see if the game is ended
   gameIsNotOver = true;
-  $("#hitStatus").text("Sink Those Ships!")//blank out HTML hitStatus
+  $("#hitStatus").text("Sink Those Ships!");//blank out HTML hitStatus
   //place ships
   placeShip(5, false);
   placeShip(4, true);
@@ -73,6 +72,7 @@ function resetBoard(){
   placeShip(2, true);
   placeShip(2, false);
   placeShip(1, true);
+  $("#shipCounter").text(shipCounter - sinkCounter);
 }
 
 function placeShip(length, horizontal){
@@ -103,6 +103,7 @@ function placeShip(length, horizontal){
       board[location + i*10] = SHIP;
     }
   }
+  shipCounter++;//increase number of ships
 }
 
 function checkForShipHorizontal(location, length){
@@ -172,11 +173,11 @@ function fireTorpedo(cellId){//changes cell color when clicked on
 
     $("#"+cellId).addClass("hitByTorpedo")//add used cell to HTML board
     torpedoUse++; //increment torpedo use
-    $("#torpedoUse").text(torpedoLimit - torpedoUse);//update torpedo use on html
-    $("#t"+(torpedoLimit-torpedoUse)).addClass("spentTorpedo")
+    $("#torpedoUse").text(TORPEDOLIMIT - torpedoUse);//update torpedo use on html
+    $("#t"+(TORPEDOLIMIT-torpedoUse)).addClass("spentTorpedo")
 
     //check for torpedo use
-    if(torpedoUse === torpedoLimit){//limits number of torpedos
+    if(torpedoUse === TORPEDOLIMIT && gameIsNotOver){//limits number of torpedos
       $("#gameOver").text(LOSEMESSAGE);
       showShips();
       gameIsNotOver = false;
@@ -194,10 +195,9 @@ function showShips(){
       else{
         checkLocation = i;
       }
-      $("#" + checkLocation).addClass("showShip")
+      $("#" + checkLocation).addClass("showShip");
     }
   }
-
 }
 
 function checkSunkShip(location){
@@ -312,8 +312,10 @@ function checkSunkShip(location){
     boardContents = board[index]
   }
 
-  sinkCounter++;
+  sinkCounter++;//increase ships sunk
+  //update HTML
   $("#sinkCounter").text(sinkCounter);
+  $("#shipCounter").text(shipCounter - sinkCounter);
   return SUNKSHIPMESSAGE;
 }
 
@@ -327,12 +329,16 @@ $(document).ready( function() {
   }
 
   var numberOfCells = 0;
-  for (var i=0; i<(torpedoLimit/2); i++){
+  for (var i=0; i<(TORPEDOLIMIT/2); i++){//create 2 column torpedo gauge
     var newTableRow = $("#torpedoGauge").append("<tr></tr>");
     for (var j=0; j<2; j++){
-      newTableRow.append('<td class="torpedoCell" id="t' + numberOfCells + '"></td>');
+      newTableRow.append('<td id="t' + numberOfCells + '"></td>');
       numberOfCells++;
     }
+  }
+  for(var i=0; i<TORPEDOLIMIT; i++){//reset torpedo gauge
+    $("#t"+i).removeClass();
+    $("#t"+i).addClass("torpedoCell");
   }
 
 
@@ -345,7 +351,12 @@ $(document).ready( function() {
   $("#resetButton").on("click", resetBoard);
 
   $("#fireRandom").on("click", function(){
-    fireTorpedo(Math.floor(Math.random()*9).toString() + Math.floor(Math.random()*9));
+    var randomShot;//variable to hold random location
+    do{
+      randomShot = Math.floor(Math.random()*9).toString() + Math.floor(Math.random()*9); //get random 2 digit location string
+    }
+    while(board[parseInt(randomShot)] === HITSHIP || board[parseInt(randomShot)] === HITNOTHING)//loop if space is alreay shot at
+    fireTorpedo(randomShot);
   });
 
   $("#caribbeanButton").on("click", function(){
@@ -367,8 +378,8 @@ $(document).ready( function() {
 
   $("#refillButton").on("click", function(){
     torpedoUse = 0;
-    $("#torpedoUse").text(torpedoLimit);
-    for(var i=0; i<torpedoLimit; i++){//reset torpedo gauge
+    $("#torpedoUse").text(TORPEDOLIMIT);
+    for(var i=0; i<TORPEDOLIMIT; i++){//reset torpedo gauge
       $("#t"+i).removeClass();
       $("#t"+i).addClass("torpedoCell");
      $("#cheatSpan").text("You Cheated");

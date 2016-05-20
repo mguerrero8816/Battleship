@@ -21,42 +21,47 @@
 
   <body>
     <div class="jumbotron">
-        <h2 class="text-center"><span id="cheatSpan"></span><span id="gameOver"></span></h2>
+        <h1 class="text-center"><span id="cheatSpan"></span><span id="gameOver"></span></h1>
+        <nav class="text-center">
+          <span>Themes: </span>
+          <input type="button" value="Classic" id="classicButton"/>
+          <input type="button" value="Caribbean" id="caribbeanButton"/>
+          <input type="button" value="Space" id="spaceButton"/>
+        </nav>
     </div>
 
     <div class="container">
-      <div class="row">
-        <input type="button" value="Classic" id="classicButton"/>
-        <input type="button" value="Caribbean" id="caribbeanButton"/>
-        <input type="button" value="Space" id="spaceButton"/>
-      </div>
-      <div class="row">
-        <div class="col-sm-8">
+      <div class="row text-right">
+        <div class="col-sm-3">
+          <h5>Ships Sunk: <span id="sinkCounter"></span></h5>
+          <h5>Ships Floating: <span id="shipCounter"></span></h5>
+          <h5>Torpedoes Landed: <span id="hitCounter"></span></h5>
+          <input type="button" value="Reset" id="resetButton"/>
+        </div>
+        <div class="col-sm-8 text-center">
           <table>
             <tbody id="boardBody">
             </tbody>
+            <caption class="text-center" align="bottom">
+              <h2>Captain: <span id="hitStatus"></span></h2>
+            </caption>
           </table>
         </div>
-        <div class="col-sm-4">
+        <div class="col-sm-1">
+          <input type="button" value="Random Shot" id="fireRandom"/>
           <table>
             <tbody id="torpedoGauge">
             </tbody>
-            <caption>Torpedoes Left: <span id="torpedoUse"></span></caption>
+            <caption>Torpedoes: <span id="torpedoUse"></span></caption>
           </table>
         </div>
       </div>
-      <div class="row">
-        <input type="button" value="Random Shot" id="fireRandom"/>
-        <h2>Captain: <span id="hitStatus"></span></h2>
-        <h2>Torpedoes Landed: <span id="hitCounter"></span></h2>
-        <h2>Ships Sunk: <span id="sinkCounter"></span></h2>
-        <input type="button" value="Reset" id="resetButton"/>
-      </div>
-      <div class="row">
+      <div class="row text-center">
         <h2>Cheats</h2>
         <input type="button" value="Show Ships" id="showButton"/>
         <input type="button" value="Fill Ammo" id="refillButton"/>
-  </div>
+      </div>
+    </div>
 
   </body>
 
