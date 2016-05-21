@@ -5,45 +5,54 @@ var HITNOTHING = -1;
 // set win conditions
 var HITSTOWIN = 24; //currently unused
 var SINKSTOWIN = 5;
+var TORPEDOLIMIT = 40;
 // messages for hitting/missing ship
 var HITMESSAGE = "You Hit a Ship!";
 var MISSMESSAGE = "You Missed!";
+//sink ships messages
+var SUNKSHIPMESSAGE = "You Sunk a Ship!";
 // messages for game starting/ending
-var STARTMESSAGE = ": Sink " + SINKSTOWIN + " Ships to Win!"
+var STARTMESSAGE = ": Sink " + SINKSTOWIN + " Ships to Win!";
 var WINMESSAGE = ": Fleet Crippled!";
 var LOSEMESSAGE = ": Out of Torpedoes!";
-//sink ships messages
-var SUNKSHIPMESSAGE = "You Sunk a Ship!"
+var boardSquareDimension = 10;
+var lastCell;
 // initialize board as empty array
 var board;
 // initialize counters for various in game items
 var torpedoUse;
 var hitCounter;
 var sinkCounter = 0;
-var shipCounter = 0;
+var shipCounter;
 // check to see if the game is ended
 var gameIsNotOver;
 
-var TORPEDOLIMIT = 40;
+var torpedoType;
+//counts cells that have been made
+var cellCounter;
 //game objective
 
 
 function resetBoard(){
-  //reset jumbotron message
+  $("#boardBody").empty();
+  cellCounter = 0;
+  for (var i=0; i<boardSquareDimension; i++) { //iterate row creation 10 times
+    var newTableRow = $("#boardBody").append("<tr></tr>");// create table row and designate the row for appending
+    for (var j=0; j<boardSquareDimension; j++) { //iterate cell creation 10 times
+      newTableRow.append('<td class="boardCell" id="' + cellCounter + '"></td>');// create cell within designated row
+      cellCounter++;
+    }
+  }
+  lastCell = cellCounter-1;
+  $(".boardCell").on("click", function(){
+    torpedoSelector($(this).attr("id"));//calls fireTorpedo function on clicked cell
+  });
+
+  //reset jumbotron messages
   // get rid of cheat message
   $("#cheatSpan").text("Battleship");
   // get rid of win/loss message
   $("#gameOver").text(STARTMESSAGE);
-
-  // remove classes from html board
-  for(var i = 0; i <10; i++){//remove from single digit IDs
-    $("#0"+i).removeClass();
-    $("#0"+i).addClass("boardCell");
-  }
-  for(var i = 10; i <100; i++){//remove from double digit IDs
-    $("#"+i).removeClass();
-    $("#"+i).addClass("boardCell");
-  }
 
   // initialize board as empty array
   board = [];
@@ -54,6 +63,8 @@ function resetBoard(){
     $("#t"+i).removeClass();
     $("#t"+i).addClass("torpedoCell");
   }
+  //reset torpedo type to normal
+  torpedoType = "normal";
   // initialize js and html hit counter
   hitCounter = 0;
   $("#hitCounter").text(hitCounter);
@@ -64,6 +75,7 @@ function resetBoard(){
   gameIsNotOver = true;
   $("#hitStatus").text("Sink Those Ships!");//blank out HTML hitStatus
   //place ships
+  shipCounter = 0;//reset ship counter
   placeShip(5, false);
   placeShip(4, true);
   placeShip(4, false);
@@ -79,28 +91,29 @@ function placeShip(length, horizontal){
   var location;
   if(horizontal === true){
     do {
-      location = Math.floor(Math.random()*99);
+      location = Math.floor(Math.random()*lastCell);
     }
     while(
       (board[location] === SHIP) || //new location if on a ship
-      ((location%10) > (10-length)) || //new location if on an edge
+      ((location%boardSquareDimension) > (boardSquareDimension-length)) || //new location if on an edge
       checkForShipHorizontal(location, length) //new location if on a ship
     )
     for(var i = 0; i<length; i++){
       board[location + i] = SHIP;
     }
   }
-  if(horizontal === false){
+  else{
+    // orient ship vertically
     do {
-      location = Math.floor(Math.random()*99);
+      location = Math.floor(Math.random()*lastCell);
     }
     while(
       (board[location] === SHIP) || //new location if on a ship
-      ((location+length*10) > (109)) || //new location if on the bottom edge
+      ((location+length*boardSquareDimension) > (lastCell + boardSquareDimension)) || //new location if on the bottom edge
       checkForShipVertical(location, length) //new location if on a ship
     )
     for(var i = 0; i<length; i++){
-      board[location + i*10] = SHIP;
+      board[location + i*boardSquareDimension] = SHIP;
     }
   }
   shipCounter++;//increase number of ships
@@ -108,19 +121,11 @@ function placeShip(length, horizontal){
 
 function checkForShipHorizontal(location, length){
   for(var i = 0; i < length; i++){
-    if(board[location + i] === SHIP){// verify no ship at location to be placed
-      return true;
-    }
-    if(board[location + i + 10] ===SHIP){// verify no ship above location to be placed
-      return true;
-    }
-    if(board[location + i - 10] ===SHIP){// verify no ship below location to be placed
-      return true;
-    }
-    if(board[location + i - 1] === SHIP){//verify no ship to the left of location to be placed
-      return true;
-    }
-    if(board[location + i + 1] === SHIP){//verify no ship to the right of location to be placed
+    if(board[location + i] === SHIP ||// verify no ship at location to be placed
+      board[location + i + boardSquareDimension] === SHIP ||// verify no ship above location to be placed
+      board[location + i - boardSquareDimension] === SHIP ||// verify no ship below location to be placed
+      board[location + i - 1] === SHIP ||//verify no ship to the left of location to be placed
+      board[location + i + 1] === SHIP){//verify no ship to the right of location to be placed
       return true;
     }
   }
@@ -129,23 +134,27 @@ function checkForShipHorizontal(location, length){
 
 function checkForShipVertical(location, length){
   for(var i = 0; i < length; i++){
-    if(board[location + i*10] === SHIP){// verify no ship at location to be placed
-      return true;
-    }
-    if(board[location + i*10 - 10] ===SHIP){// verify no ship above location to be placed
-      return true;
-    }
-    if(board[location + i*10 + 10] ===SHIP){// verify no ship below location to be placed
-      return true;
-    }
-    if(board[location + i*10 - 1] === SHIP){//verify no ship to the left of location to be placed
-      return true;
-    }
-    if(board[location + i*10 + 1] === SHIP){//verify no ship to the right of location to be placed
+    if(board[location + i*boardSquareDimension] === SHIP ||// verify no ship at location to be placed
+      board[location + i*boardSquareDimension - boardSquareDimension] ===SHIP ||// verify no ship above location to be placed
+      board[location + i*boardSquareDimension + boardSquareDimension] ===SHIP ||// verify no ship below location to be placed
+      board[location + i*boardSquareDimension - 1] === SHIP ||//verify no ship to the left of location to be placed
+      board[location + i*boardSquareDimension + 1] === SHIP){//verify no ship to the right of location to be placed
       return true;
     }
   }
   return false;
+}
+
+//purpose fire different torpedo types
+//returns nothing
+//takes string
+function torpedoSelector(cellId){
+  if(torpedoType === "normal"){
+    fireTorpedo(cellId);
+  }
+  if(torpedoType === "cross"){
+    crossTorpedo(cellId);
+  }
 }
 
 function fireTorpedo(cellId){//changes cell color when clicked on
@@ -186,15 +195,41 @@ function fireTorpedo(cellId){//changes cell color when clicked on
   };//end torpedo check
 }//end fire torpedo function
 
+// Takes -> String
+// Integer -> Nothing
+// Does: calls fireTorpedo function on multiple cells
+function crossTorpedo(cellId){//changes cell color when clicked on
+  //change ID string to integer
+  var cellInt = parseInt(cellId);
+  //only add torpedo if cell is unused
+  if(board[cellInt]!=HITNOTHING && board[cellInt]!=HITSHIP && gameIsNotOver) {
+    //call fire torpedo function in cross formation
+    var stringIdUp = cellInt - boardSquareDimension;
+    var stringIdDown = cellInt + boardSquareDimension;
+    var stringIdLeft = cellInt - 1;
+    var stringIdRight = cellInt + 1;
+
+    fireTorpedo(cellInt);
+    fireTorpedo(stringIdUp);
+    fireTorpedo(stringIdDown);
+    //prevent shot to the right if it wraps right
+    if(stringIdRight%boardSquareDimension != 0){
+      fireTorpedo(stringIdRight);
+    }
+    //prevent shot tot he left if it wraps left
+    if(stringIdLeft%boardSquareDimension != lastCell%boardSquareDimension){
+      fireTorpedo(stringIdLeft);
+    }
+  };//end torpedo check
+}//end crossTorpedo function
+
+//take nothing
+//returns nothing
+//shows all ships on the board
 function showShips(){
-  for (var i=0; i<=99; i++) {
+  for (var i=0; i<(boardSquareDimension*boardSquareDimension); i++) {
     if(board[i]===SHIP) {
-      if(i<=9){
-        var checkLocation = "0" + i;
-      }
-      else{
-        checkLocation = i;
-      }
+      checkLocation = i;
       $("#" + checkLocation).addClass("showShip");
     }
   }
@@ -235,7 +270,7 @@ function checkSunkShip(location){
   while(boardContents === SHIP || boardContents === HITSHIP){//counts number of hits and ship length above
     lengthCounter = lengthCounter + 1;
     boardContentsSum = boardContentsSum + boardContents
-    index = index - 10;
+    index = index - boardSquareDimension;
     boardContents = board[index];
   }
   if(lengthCounter != boardContentsSum){//end loop if ship is not sunk
@@ -248,7 +283,7 @@ function checkSunkShip(location){
   while(boardContents === SHIP || boardContents === HITSHIP){//counts number of hits and ship length below
     lengthCounter = lengthCounter + 1;
     boardContentsSum = boardContentsSum + boardContents
-    index = index + 10;
+    index = index + boardSquareDimension;
     boardContents = board[index];
   }
   if(lengthCounter != boardContentsSum){//end loop if ship is not sunk
@@ -260,13 +295,8 @@ function checkSunkShip(location){
   var boardContents = board[index];
 
   while(boardContents === HITSHIP){//move to the right and color cells
-    if(index < 9){
-      $("#0"+index).addClass("sunkShip");
-    }
-    else{
-      $("#"+index).addClass("sunkShip");
-    }
-    index = index + 1;
+    $("#"+index).addClass("sunkShip");
+    index++;
     boardContents = board[index]
   }
 
@@ -274,13 +304,8 @@ function checkSunkShip(location){
   var boardContents = board[index];
 
   while(boardContents === HITSHIP){//move to the left and color cells
-    if(index < 9){
-      $("#0"+index).addClass("sunkShip");
-    }
-    else{
-      $("#"+index).addClass("sunkShip");
-    }
-    index = index - 1;
+    $("#"+index).addClass("sunkShip");
+    index--;
     boardContents = board[index]
   }
 
@@ -288,13 +313,8 @@ function checkSunkShip(location){
   var boardContents = board[index];
 
   while(boardContents === HITSHIP){//move up and color cells
-    if(index < 9){
-      $("#0"+index).addClass("sunkShip");
-    }
-    else{
-      $("#"+index).addClass("sunkShip");
-    }
-    index = index - 10;
+    $("#"+index).addClass("sunkShip");
+    index -= boardSquareDimension;
     boardContents = board[index]
   }
 
@@ -302,13 +322,8 @@ function checkSunkShip(location){
   var boardContents = board[index];
 
   while(boardContents === HITSHIP){//move down and color cells
-    if(index < 9){
-      $("#0"+index).addClass("sunkShip");
-    }
-    else{
-      $("#"+index).addClass("sunkShip");
-    }
-    index = index + 10;
+    $("#"+index).addClass("sunkShip");
+    index += boardSquareDimension;
     boardContents = board[index]
   }
 
@@ -321,19 +336,13 @@ function checkSunkShip(location){
 
 $(document).ready( function() {
 
-  for (var i=0; i<10; i++) { //iterate row creation 10 times
-    var newTableRow = $("#boardBody").append("<tr></tr>");// create table row and designate the row for appending
-    for (var j=0; j<10; j++) { //iterate cell creation 10 times
-      newTableRow.append('<td id="' + i + j + '"></td>');// create cell within designated row
-    }
-  }
 
-  var numberOfCells = 0;
+  cellCounter = 0;
   for (var i=0; i<(TORPEDOLIMIT/2); i++){//create 2 column torpedo gauge
     var newTableRow = $("#torpedoGauge").append("<tr></tr>");
     for (var j=0; j<2; j++){
-      newTableRow.append('<td id="t' + numberOfCells + '"></td>');
-      numberOfCells++;
+      newTableRow.append('<td id="t' + cellCounter + '"></td>');
+      cellCounter++;
     }
   }
   for(var i=0; i<TORPEDOLIMIT; i++){//reset torpedo gauge
@@ -343,20 +352,16 @@ $(document).ready( function() {
 
 
   resetBoard();
-
-  $(".boardCell").on("click", function(){
-    fireTorpedo($(this).attr("id"));//calls fireTorpedo function on clicked cell
-  });
   //give reset button functionality
   $("#resetButton").on("click", resetBoard);
 
   $("#fireRandom").on("click", function(){
     var randomShot;//variable to hold random location
     do{
-      randomShot = Math.floor(Math.random()*9).toString() + Math.floor(Math.random()*9); //get random 2 digit location string
+      randomShot = Math.floor(Math.random()*lastCell).toString(); //get random location string
     }
     while(board[parseInt(randomShot)] === HITSHIP || board[parseInt(randomShot)] === HITNOTHING)//loop if space is alreay shot at
-    fireTorpedo(randomShot);
+    torpedoSelector(randomShot);
   });
 
   $("#caribbeanButton").on("click", function(){
@@ -384,6 +389,14 @@ $(document).ready( function() {
       $("#t"+i).addClass("torpedoCell");
      $("#cheatSpan").text("You Cheated");
     }
-  })
+  });
+
+  $("#crossButton").on("click", function(){
+    torpedoType = "cross";
+  });
+
+  $("#normalButton").on("click", function(){
+    torpedoType = "normal";
+  });
 
 }); // end ready
