@@ -33,13 +33,18 @@
     <div class="container">
       <div class="row text-right">
         <div class="col-sm-3">
-          <h5>Ships Sunk: <span id="sinkCounter"></span></h5>
-          <h5>Ships Floating: <span id="shipCounter"></span></h5>
+          <h5>Ships Sunk: <span id="shipsSunk"></span></h5>
+          <h5>Ships Floating: <span id="shipsPlaced"></span></h5>
           <h5>Torpedoes Landed: <span id="hitCounter"></span></h5>
           <input type="button" value="Normal Torpedo" id="normalButton"/></br>
           <input type="button" value="Cross Torpedo" id="crossButton"/></br>
           <input type="button" value="Seeker Torpedo" id="seekerButton" disabled/></br>
+          <h5>Reset Options</h5>
           <input type="button" value="Reset" id="resetButton"/></br>
+          <input type="text" placeholder="Size (Lower Limit: 10)" id="inputSize"/></br>
+          <input type="text" placeholder="Torpedo Limit" id="inputLimit"/></br>
+          <input type="button" value="Change Limits" id="changeButton"/></br>
+          <input type="button" value="Defaults" id="defaultButton"/></br>
         </div>
         <div class="col-sm-8 text-center">
           <table>
@@ -55,7 +60,7 @@
           <table>
             <tbody id="torpedoGauge">
             </tbody>
-            <caption>Torpedoes: <span id="torpedoUse"></span></caption>
+            <caption>Torpedoes: <span id="torpedoesUsed"></span></caption>
           </table>
         </div>
       </div>
