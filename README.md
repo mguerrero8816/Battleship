@@ -23,3 +23,5 @@ Planned Features
 - Implement "Sonar"
 - Add Option to change number and size of ships
 - Fix Cross Torpedo Hit/Sink/Miss Message
+- Add 2 Player Option
+- Add Computer Opponent Option
